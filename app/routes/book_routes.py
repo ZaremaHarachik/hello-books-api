@@ -1,9 +1,23 @@
 
-from flask import Blueprint, abort, make_response, request
+from flask import Blueprint, abort, make_response, request, Response
 from app.models.book import Book
 from ..db import db
 
 books_bp = Blueprint("books_bp", __name__, url_prefix="/books")
+
+# helper function to validate book id and return the book object or abort with 404 if not found
+def validate_book(book_id):
+    try:
+        book_id = int(book_id)
+    except ValueError:
+        abort(404)
+
+    book = db.session.get(Book, book_id)
+
+    if book is None:
+        abort(404)
+
+    return book
 
 
 @books_bp.post("")
@@ -38,4 +52,25 @@ def get_all_books():
         })
 
     return books_response, 200
+
+@books_bp.get("/<book_id>")
+def get_one_book(book_id):
+    book = validate_book(book_id)
+
+    return {
+        "id": book.id,
+        "title": book.title,
+        "description": book.description
+    }, 200
+
+
+@books_bp.delete("/<book_id>")
+def delete_book(book_id):
+    book = validate_book(book_id)
+    db.session.delete(book)
+    db.session.commit()
+
+    return Response(status=204, mimetype="application/json")
+
+
 
