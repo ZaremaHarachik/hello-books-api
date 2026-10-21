@@ -1,8 +1,10 @@
 
 from flask import Blueprint, abort, make_response, request, Response
+from flask_sqlalchemy import query
 from app.models.book import Book
 from ..db import db
 
+# Blueprint for book routes
 books_bp = Blueprint("books_bp", __name__, url_prefix="/books")
 
 # helper function to validate book id and return the book object or abort with 404 if not found
@@ -20,6 +22,7 @@ def validate_book(book_id):
     return book
 
 
+# Create book route
 @books_bp.post("")
 def create_book():
     request_body = request.get_json()
@@ -38,10 +41,40 @@ def create_book():
     return response, 201
 
 
-
+# Get all books route
 @books_bp.get("")
 def get_all_books():
-    books = db.session.scalars(db.select(Book)).all()
+    query = db.select(Book)
+
+    title_param = request.args.get("title")
+
+    if title_param:
+        query = query.where(
+            Book.title.ilike(f"%{title_param}%"))
+
+    description_param = request.args.get("description")
+
+    if description_param:
+        query = query.where(
+            Book.description.ilike(f"%{description_param}%")
+        )
+
+    query = query.order_by(Book.id)
+    books = db.session.scalars(query).all()
+
+    books_response = []
+    for book in books:
+        books_response.append({
+            "id": book.id,
+            "title": book.title,
+            "description": book.description,
+        })
+
+    return books_response, 200    
+    
+
+    query = query.order_by(Book.id)
+    books = db.session.scalars(query).all()   
 
     books_response = []
     for book in books:
@@ -53,6 +86,7 @@ def get_all_books():
 
     return books_response, 200
 
+# Get one book route
 @books_bp.get("/<book_id>")
 def get_one_book(book_id):
     book = validate_book(book_id)
@@ -64,6 +98,7 @@ def get_one_book(book_id):
     }, 200
 
 
+# Update book route
 @books_bp.delete("/<book_id>")
 def delete_book(book_id):
     book = validate_book(book_id)
