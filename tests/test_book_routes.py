@@ -52,3 +52,28 @@ def test_create_one_book(client):
         "title": "New Book",
         "description": "The Best!"
     }
+
+
+def test_get_one_book_not_found(client):
+    response = client.get("/books/1")
+
+    assert response.status_code == 404
+
+
+def test_get_all_books_with_saved_books(client, two_saved_books):
+    response = client.get("/books")
+    response_body = response.get_json()
+
+    assert response.status_code == 200
+    assert response_body == [
+        {
+            "id": 1,
+            "title": "Ocean Book",
+            "description": "watr 4evr"
+        },
+        {
+            "id": 2,
+            "title": "Mountain Book",
+            "description": "i luv 2 climb rocks"
+        }
+    ]    
