@@ -4,6 +4,7 @@ from flask_sqlalchemy import query
 from app.models.book import Book
 from ..db import db
 
+
 # Blueprint for book routes
 books_bp = Blueprint("books_bp", __name__, url_prefix="/books")
 
@@ -21,6 +22,8 @@ def validate_book(book_id):
 
     return book
 
+def create_book_object(title, description):
+    return Book(title=title, description=description)
 
 # Create book route
 @books_bp.post("")
@@ -29,7 +32,7 @@ def create_book():
     title = request_body["title"]
     description = request_body["description"]
 
-    new_book = Book(title=title, description=description)
+    new_book = create_book_object(title, description)
     db.session.add(new_book)
     db.session.commit()
 
@@ -73,18 +76,6 @@ def get_all_books():
     return books_response, 200    
     
 
-    query = query.order_by(Book.id)
-    books = db.session.scalars(query).all()   
-
-    books_response = []
-    for book in books:
-        books_response.append({
-            "id": book.id,
-            "title": book.title,
-            "description": book.description,
-        })
-
-    return books_response, 200
 
 # Get one book route
 @books_bp.get("/<book_id>")
@@ -106,6 +97,7 @@ def delete_book(book_id):
     db.session.commit()
 
     return Response(status=204, mimetype="application/json")
+
 
 
 

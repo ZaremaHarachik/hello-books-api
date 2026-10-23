@@ -7,9 +7,11 @@ from .routes.book_routes import books_bp
 import os
 
 
+# Create the Flask application
 def create_app(config=None):
     app = Flask(__name__)
 
+    # Configure the Flask app with SQLAlchemy settings
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
         'SQLALCHEMY_DATABASE_URI'
